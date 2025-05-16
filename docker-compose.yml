@@ -1,0 +1,56 @@
+
+
+services:
+    app:
+        build: .
+        container_name: service-directory-apps
+        working_dir: /var/www/html
+        volumes:
+            - ./:/var/www/html
+        ports:
+            - "8000:8000"
+        depends_on:
+            - redis
+            - db
+        environment:
+            REDIS_HOST: redis
+            DB_CONNECTION: mysql
+            DB_HOST: db
+            DB_PORT: 3306
+            DB_DATABASE: service_directory
+            DB_USERNAME: root
+            DB_PASSWORD: root
+        command: php artisan serve --host=0.0.0.0 --port=8000
+        networks:
+            - appnet
+
+    redis:
+        image: redis:alpine
+        container_name: service-directory-redis
+        ports:
+            - "6379:6379"
+        restart: always
+        networks:
+            - appnet
+
+    db:
+        image: mysql:8.0
+        container_name: service-directory-dbc
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: service_directory
+            MYSQL_USER: root
+            MYSQL_PASSWORD: root
+        ports:
+            - "3306:3306"
+        volumes:
+            - dbdata:/var/lib/mysql
+        networks:
+            - appnet
+
+volumes:
+    dbdata:
+
+networks:
+    appnet:
+        driver: bridge
